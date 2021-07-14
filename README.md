@@ -32,7 +32,7 @@ gsutil mb -l us-central1 $BUCKET_NAME
 ```bash
 alias python=python3
 ```
-## 2. Containerize Training Code:
+## 2. Containerizing Training Code:
 We'll submit this training job to Vertex by putting our training code in a Docker container and pushing this container to [Google Container Registry]("https://cloud.google.com/container-registry?utm_campaign=CDR_sar_aiml_ucaiplabs_011321&utm_source=external&utm_medium=web). Now, in order to work in this task, run the following commands in your cloud shell to:
 
 1. Create the files we will need for our Docker Container:
@@ -238,4 +238,134 @@ docker build ./ -t $IMAGE_URI
 ```bash
 docker push $IMAGE_URI
 ```
-![Container-Image]("https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/container-image.png")
+To verify your image was pushed to Container Registry, you should see `mpg` folder when you navigate to the [Container Registry](https://console.cloud.google.com/gcr) section of your console:
+
+![Container-Image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/container-image.png)
+
+## 3. Running a training job on Vertex AI 
+In this project, we are using custom training via our own custom container on Google Container Registry. Please follow the step by step guide mentioned on this page [link](https://codelabs.developers.google.com/codelabs/vertex-ai-custom-models#4) to submit a custom model training job to Vertex AI.
+
+After successfully submitting the training job, you will see something like that in your Cloud Console:
+![Training-Image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/training.png)
+
+## 4. Deploying a model endpoint:
+In this step we'll create an endpoint for our trained model. We can use this to get predictions on our model via the Vertex AI API. Run the following commands in your Cloud Shell to:
+
+1. Install the Vertex AI SDK:
+```bash
+pip3 install google-cloud-aiplatform --upgrade --user
+```
+2. Open the `deploy.py` file:
+```bash
+vim deploy.py
+```
+3. Paste the below code in the deploy.py file:
+```bash
+from google.cloud import aiplatform
+
+# Create a model resource from public model assets
+model = aiplatform.Model.upload(
+    display_name="mpg-imported",
+    artifact_uri="gs://io-vertex-codelab/mpg-model/",
+    serving_container_image_uri="gcr.io/cloud-aiplatform/prediction/tf2-cpu.2-3:latest"
+)
+
+# Deploy the above model to an endpoint
+endpoint = model.deploy(
+    machine_type="n1-standard-4"
+)
+```
+Note: Again, press `ESC` key and then `:wq` to write and quit the vim editor.
+
+4. Switch back into your root dir, and run this deploy.py file:
+```bash
+cd ..
+python3 deploy.py | tee deploy-output.txt
+```
+Note:
+This will take 10-15 minutes to run. To ensure it's working correctly, navigate to the `Models` section of your console in Vertex AI:
+
+![Model](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/model.png)
+
+Click on mgp-imported and you should see your endpoint for that model being created:
+
+![Endpoint-Image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/endpoint.png)
+
+In your Cloud Shell Terminal, you'll see something like the following image:
+
+![deploy-shell-image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/deploy.png)
+
+5. Open the `predict.py` file:
+```bash
+vim predict.py
+```
+6. Paste the below code in the predict.py file:
+```bash
+from google.cloud import aiplatform
+
+endpoint = aiplatform.Endpoint(
+    endpoint_name="ENDPOINT_STRING"
+)
+
+# A test example we'll send to our model for prediction
+test_mpg = [1, 2, 3, 2, -2, -1, -2, -1, 0]
+
+response = endpoint.predict([test_mpg])
+
+print('API response: ', response)
+
+print('Predicted MPG: ', response.predictions[0][0])
+```
+Note: Again, press `ESC` key and then `:wq` to write and quit the vim editor.
+
+7. Replace `ENDPOINT_STRING` in the predict.py file with your own endpoint:
+```bash
+ENDPOINT=$(cat deploy-output.txt | sed -nre 's:.*Resource name\: (.*):\1:p' | tail -1)
+sed -i "s|ENDPOINT_STRING|$ENDPOINT|g" predict.py
+```
+8. Run the `predict.py` file to get a prediction from our deployed model endpoint:
+```bash
+python3 predict.py
+```
+Once, you will run the above command, you will see this kind of result in your Cloud Shell:
+![Prediction-Image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/predict.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
