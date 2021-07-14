@@ -60,11 +60,11 @@ ENTRYPOINT ["python", "-m", "trainer.train"]
 ```
 Note: Press `ESC` key and then `:wq` to write and quit the vim editor.
 
-3. Open the train.py file:
+4. Open the train.py file:
 ```bash
 vim trainer/train.py
 ```
-4. Paste the below code in the train.py file:
+5. Paste the below code in the train.py file:
 ```bash
 # This will be replaced with your bucket name after running the `sed` command in the tutorial
 BUCKET = "BUCKET_NAME"
@@ -222,19 +222,19 @@ model.save(BUCKET + '/mpg/model')
 ```
 Note: Again, press `ESC` key and then `:wq` to write and quit the vim editor.
 
-5. Add your own bucket name to the file:
+6. Add your own bucket name to the file:
 ```bash
 sed -i "s|BUCKET_NAME|$BUCKET_NAME|g" trainer/train.py
 ```
-6. Define a variable with the URI of your container image in Google Container Registry: 
+7. Define a variable with the URI of your container image in Google Container Registry: 
 ```bash
 IMAGE_URI="gcr.io/$GOOGLE_CLOUD_PROJECT/mpg:v1"
 ```
-7. Build the container:
+8. Build the container:
 ```bash
 docker build ./ -t $IMAGE_URI
 ```
-8. push container to Google Container Registry:
+9. push container to Google Container Registry:
 ```bash
 docker push $IMAGE_URI
 ```
@@ -243,12 +243,15 @@ To verify your image was pushed to Container Registry, you should see `mpg` fold
 ![Container-Image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/container-image.png)
 
 ## 3. Running a training job on Vertex AI 
+
 In this project, we are using custom training via our own custom container on Google Container Registry. Please follow the step by step guide mentioned on this page [link](https://codelabs.developers.google.com/codelabs/vertex-ai-custom-models#4) to submit a custom model training job to Vertex AI.
 
 After successfully submitting the training job, you will see something like that in your Cloud Console:
+
 ![Training-Image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/training.png)
 
 ## 4. Deploying a model endpoint:
+
 In this step we'll create an endpoint for our trained model. We can use this to get predictions on our model via the Vertex AI API. Run the following commands in your Cloud Shell to:
 
 1. Install the Vertex AI SDK:
@@ -287,7 +290,7 @@ This will take 10-15 minutes to run. To ensure it's working correctly, navigate 
 
 ![Model](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/model.png)
 
-Click on mgp-imported and you should see your endpoint for that model being created:
+Click on `mgp-imported` and you should see your endpoint for that model being created:
 
 ![Endpoint-Image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/endpoint.png)
 
@@ -328,12 +331,14 @@ sed -i "s|ENDPOINT_STRING|$ENDPOINT|g" predict.py
 python3 predict.py
 ```
 Once, you will run the above command, you will see this kind of result in your Cloud Shell:
+
 ![Prediction-Image](https://github.com/alihussainia/Vehicle-Fuel-Efficiency-Prediction/blob/main/images/predict.png)
 
+## Dataset:
+In this project, the [Auto-mpg dataset](https://www.kaggle.com/uciml/autompg-dataset) has been used. The data is technical spec of cars and is also available in  [UCI Machine Learning Repository](https://archive.ics.uci.edu/ml/datasets/auto+mpg) 
 
-
-
-
+## References:
+[Build and deploy a model with Vertex AI - CodeLabs](https://codelabs.developers.google.com/codelabs/vertex-ai-custom-models#0)
 
 
 
